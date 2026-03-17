@@ -1,0 +1,33 @@
+{
+  "name": "Shimmer Leggings – Premium Quality (SUPER GOLD)",
+  "category": "Shimmer Leggings",
+  "basePrice": 310,
+  "originalPrice": 450,
+  "stock": 50,
+  "description": "Shimmer Leggings – Premium Quality\n\nElegant shimmer leggings made with high-quality fabric for superior comfort and style. Designed with 220 GSM thickness, these leggings provide excellent durability, perfect coverage, and a smooth finish. The 4-way stretchable fabric ensures maximum flexibility and a perfect body fit, making them ideal for everyday wear, ethnic outfits, and festive occasions. Soft, breathable, and comfortable for all-day use. ✨",
+  "images": [
+    "/images/Products/1773648756880-119202393.jpg",
+    "/images/Products/1773648770949-807243011.jpg",
+    "/images/Products/1773648797349-588832530.jpg",
+    "/images/Products/1773648815698-541345456.jpg",
+    "/images/Products/1773648831706-411022718.jpg"
+  ],
+  "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL"
+  ],
+  "colors": [
+    {
+      "name": "Antique Gold",
+      "class": "bg-yellow-800"
+    }
+  ],
+  "createdAt": {
+    "_seconds": 1773649083,
+    "_nanoseconds": 528000000
+  }
+}
