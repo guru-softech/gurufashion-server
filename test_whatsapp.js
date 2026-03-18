@@ -15,7 +15,7 @@ async function test() {
     const response = await axios.post('https://www.fast2sms.com/dev/whatsapp', {
       message_id: WHATSAPP_MESSAGE_ID,
       phone_number_id: WHATSAPP_PHONE_NUMBER_ID,
-      numbers: '919043006167', // User's number
+      numbers: '919043006811', // User's number
       variables_values: '123456'
     }, {
       headers: {
