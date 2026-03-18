@@ -2,6 +2,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { db } = require('../firebase/firebaseAdmin');
 const { generateCustomOrderId } = require('../utils/orderUtils');
+const { sendOrderConfirmationMessages } = require('../utils/whatsappUtils');
 require('dotenv').config();
 
 const getRazorpayInstance = () => {
@@ -102,8 +103,6 @@ exports.verifyPayment = async (req, res) => {
       
       // Record coupon usage for one-time coupons
       if (orderDetails.appliedCoupon && orderDetails.appliedCoupon.id) {
-        // Find if coupon already has usage limit set
-        // Actually, the validate step already checked this, but we record here on success
         await db.collection('couponUsage').add({
           couponId: orderDetails.appliedCoupon.id,
           userId: req.user.uid,
@@ -111,6 +110,13 @@ exports.verifyPayment = async (req, res) => {
           usedAt: new Date()
         });
       }
+
+      // 🔔 Send WhatsApp notifications to customer + admin (non-blocking)
+      const customerPhone = orderDetails.deliveryDetails?.phone || '';
+      const fullOrderData = { ...orderData, customOrderId };
+      sendOrderConfirmationMessages(fullOrderData, customerPhone).catch(err =>
+        console.error('WhatsApp notification error:', err.message)
+      );
 
       return res.status(200).json({ 
         message: "Payment verified successfully", 
