@@ -24,6 +24,9 @@ async function syncOrderToGoogleSheets(orderData, userEmail) {
     const now = new Date();
     const formattedDate = now.toISOString().replace('T', ' ').split('.')[0];
 
+    const rawPhone = orderData.deliveryDetails?.phone || '';
+    const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10);
+
     const invoice = {
       orderid: orderData.customOrderId,
       useremail: userEmail || 'gurusoftech.chennai@gmail.com',
@@ -34,14 +37,14 @@ async function syncOrderToGoogleSheets(orderData, userEmail) {
       city: orderData.deliveryDetails?.city || '',
       state: orderData.deliveryDetails?.state || '',
       pincode: orderData.deliveryDetails?.pincode || '',
-      mobilenumber: orderData.deliveryDetails?.phone || '',
+      mobilenumber: cleanPhone,
       altermobil: '',
       prepaid_cod: orderData.paymentMethod === 'cod' ? 'COD' : 'Pre-paid',
       totalamount: orderData.totalAmount?.toString() || '0',
       codamount: orderData.paymentMethod === 'cod' ? orderData.balanceDue?.toString() : '',
       paidamount: orderData.advancePaid?.toString() || '0',
       balanceamount: orderData.balanceDue?.toString() || '0',
-      shippingamount: orderData.shippingCost?.toString() || '',
+      shippingamount: orderData.shippingCost?.toString() || '0',
       paymentmethod: orderData.paymentMethod === 'cod' ? 'COD' : 'Full Paid',
       noofitems: orderData.cartItems?.length || 0,
       billedby: 'Guru',
@@ -57,7 +60,9 @@ async function syncOrderToGoogleSheets(orderData, userEmail) {
       orderdate: formattedDate,
       orderemail: userEmail || 'gurusoftech.chennai@gmail.com',
       color: item.selectedColor || 'N/A',
-      size: `${item.length ? item.length + '-' : ''}${item.selectedSize || 'N/A'}`,
+      size: item.category?.toLowerCase().includes('duppatta') || item.name?.toLowerCase().includes('duppatta') 
+            ? (item.selectedSize === 'N/A' || !item.selectedSize ? 'SHAWL' : item.selectedSize)
+            : `${item.length ? item.length + '-' : ''}${item.selectedSize || 'N/A'}`,
       quantity: item.quantity || 1,
       gf_status: 'Pending'
     }));
