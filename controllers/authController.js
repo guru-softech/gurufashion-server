@@ -104,9 +104,20 @@ const verifyOtp = async (req, res) => {
     // 3. Clear the OTP
     await db.collection('temp_otps').doc(phoneNumber).delete();
 
-    // 4. Generate Firebase Custom Token
-    // We use the phoneNumber as the UID for simplicity if they aren't fully registered yet, 
-    // or we could look up the user. Firebase handles merging if the UID matches.
+    // 4. Check if user exists in Firestore 'users' collection
+    let userDoc = await db.collection('users').doc(phoneNumber).get();
+    
+    if (!userDoc.exists) {
+      console.log('Creating new user for:', phoneNumber);
+      await db.collection('users').doc(phoneNumber).set({
+        phoneNumber,
+        role: 'user',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        addresses: []
+      });
+    }
+
+    // 5. Generate Firebase Custom Token
     const customToken = await admin.auth().createCustomToken(phoneNumber);
 
     res.status(200).json({ success: true, customToken });
