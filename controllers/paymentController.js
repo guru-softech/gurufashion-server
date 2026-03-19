@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { db } = require('../firebase/firebaseAdmin');
 const { generateCustomOrderId } = require('../utils/orderUtils');
 const { sendOrderConfirmationMessages } = require('../utils/whatsappUtils');
+const { syncOrderToGoogleSheets } = require('../utils/googleSheetUtils');
 require('dotenv').config();
 
 const getRazorpayInstance = () => {
@@ -116,6 +117,12 @@ exports.verifyPayment = async (req, res) => {
       const fullOrderData = { ...orderData, customOrderId };
       sendOrderConfirmationMessages(fullOrderData, customerPhone).catch(err =>
         console.error('WhatsApp notification error:', err.message)
+      );
+
+      // 📊 Sync with Google Sheets (non-blocking)
+      const userEmail = req.user?.email || '';
+      syncOrderToGoogleSheets(fullOrderData, userEmail).catch(err =>
+        console.error('Google Sheet Sync error:', err.message)
       );
 
       return res.status(200).json({ 
