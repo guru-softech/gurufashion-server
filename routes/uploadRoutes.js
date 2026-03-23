@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const { verifyToken, verifySuperAdmin } = require('../middleware/authMiddleware');
 
 // Ensure the upload directory exists
@@ -35,26 +36,38 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
 // Upload endpoint
-router.post('/', verifyToken, verifySuperAdmin, upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Please upload a file' });
+router.post('/', verifyToken, verifySuperAdmin, (req, res) => {
+  upload.single('image')(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      console.error("Multer error:", err);
+      return res.status(500).json({ error: 'Multer error: ' + err.message });
+    } else if (err) {
+      console.error("Unknown upload error:", err);
+      return res.status(500).json({ error: 'Upload error: ' + err.message });
     }
-    
-    // Return the relative path that the client can use
-    const filePath = `/images/Products/${req.file.filename}`;
-    res.status(200).json({ 
-      message: 'File uploaded successfully',
-      url: filePath 
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Please upload a file' });
+      }
+      
+      // Return the relative path that the client can use
+      const filePath = `/images/Products/${req.file.filename}`;
+      res.status(200).json({ 
+        message: 'File uploaded successfully',
+        url: filePath 
+      });
+    } catch (error) {
+      console.error("Server upload post-processing error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 });
+
 
 // Delete image endpoint
 router.delete('/', verifyToken, verifySuperAdmin, (req, res) => {

@@ -25,26 +25,40 @@ exports.getDashboardStats = async (req, res) => {
     
     let totalRevenue = 0;
     let activeOrdersCount = 0;
+    let codOrdersCount = 0;
+    let prepaidOrdersCount = 0;
+    let totalItemsSold = 0;
+    let nonCancelledOrdersCount = 0;
     const recentOrders = [];
 
     ordersSnapshot.forEach(doc => {
       const data = doc.data();
       
-      // Total Revenue: sum of advancePaid for all orders (or totalAmount if fully paid)
-      // Since our flow uses advancePaid + balanceDue, we sum advancePaid for revenue confirmed so far
       if (data.status !== 'Cancelled') {
-        totalRevenue += (data.advancePaid || 0);
-        // If full payment was made online at checkout
-        if (data.paymentMethod === 'online' && data.balanceDue === 0) {
-          // totalRevenue already includes advancePaid which would be the full amount
+        // Total Revenue: sum of subtotal
+        totalRevenue += (data.subtotal || data.totalAmount || 0);
+        nonCancelledOrdersCount++;
+        
+        // Items count
+        if (data.cartItems && Array.isArray(data.cartItems)) {
+          totalItemsSold += data.cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
+        }
+
+        // COD vs Prepaid
+        if (data.paymentMethod === 'cod') {
+          codOrdersCount++;
+        } else if (data.paymentMethod === 'online') {
+          prepaidOrdersCount++;
         }
       }
 
-      // Active Orders: Pending, Processing, Shipped
-      if (['Pending', 'Processing', 'Shipped'].includes(data.status)) {
+      // Active Orders: count of confirmed orders
+      if (data.status === 'Confirmed') {
         activeOrdersCount++;
       }
     });
+
+    const averageOrderValue = nonCancelledOrdersCount > 0 ? totalRevenue / nonCancelledOrdersCount : 0;
 
     // Get 5 most recent orders
     const recentSnapshot = await db.collection(collectionName)
@@ -59,7 +73,10 @@ exports.getDashboardStats = async (req, res) => {
     const stats = {
       totalRevenue: totalRevenue,
       activeOrders: activeOrdersCount,
-      totalCustomers: usersSnapshot.size,
+      codOrdersCount: codOrdersCount,
+      prepaidOrdersCount: prepaidOrdersCount,
+      totalItemsSold: totalItemsSold,
+      averageOrderValue: averageOrderValue,
       recentOrders: recentOrders
     };
 
