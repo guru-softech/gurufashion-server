@@ -4,7 +4,7 @@ const products = [
   {
     name: 'Premium Shimmer Leggings - Midnight Black',
     category: 'Shimmer Leggings',
-    basePrice: 449,
+    basePrice: 289,
     originalPrice: 599,
     description: 'Our signature shimmer leggings are crafted from ultra-soft, high-stretch fabric that provides a second-skin fit. Featuring a premium metallic sheen that doesn\'t fade, these are perfect for both festive occasions and evening wear.',
     images: ['/images/custom/11.png', '/images/custom/12.png', '/images/custom/13.png'],
@@ -40,7 +40,7 @@ const products = [
   {
     name: 'Normal Cotton Leggings - Navy Blue',
     category: 'Normal Leggings',
-    basePrice: 349,
+    basePrice: 289,
     originalPrice: 499,
     description: 'Comfortable everywear cotton leggings with 5% spandex for perfect stretch. Breathable and durable.',
     images: ['/images/custom/18.png', '/images/custom/19.png'],
@@ -59,6 +59,18 @@ const products = [
     sizes: ['M', 'L', 'XL'],
     colors: [{ name: 'Royal Blue', class: 'bg-blue-700' }],
     stock: 15,
+    featured: true
+  },
+  {
+    name: 'Shimmer Duppatta – Elegant Wrap',
+    category: 'Shimmer Duppatta',
+    basePrice: 129,
+    originalPrice: 199,
+    description: 'Beautiful shimmer dupatta that adds elegance to any ethnic outfit. Soft fabric with a subtle metallic glisten.',
+    images: ['/images/custom/23.png'],
+    sizes: ['Free Size'],
+    colors: [{ name: 'Gold', class: 'bg-yellow-400' }],
+    stock: 40,
     featured: true
   }
 ];
