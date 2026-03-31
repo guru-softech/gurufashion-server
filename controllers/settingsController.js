@@ -8,9 +8,22 @@ exports.getSettings = async (req, res) => {
     const doc = await db.collection(collectionName).doc(docId).get();
     if (!doc.exists) {
       // Default settings if none exist
-      return res.status(200).json({ freeDeliveryThreshold: 499 });
+      return res.status(200).json({
+        freeDeliveryThreshold: 499,
+        fullLengthExtra: 50,
+        shippingCharges: 50,
+        taxValue: 5
+      });
     }
-    res.status(200).json(doc.data());
+    // Also inject defaults into existing documents that might not have these fields yet
+    const data = doc.data();
+    res.status(200).json({
+      freeDeliveryThreshold: data.freeDeliveryThreshold ?? 499,
+      fullLengthExtra: data.fullLengthExtra ?? 50,
+      shippingCharges: data.shippingCharges ?? 50,
+      taxValue: data.taxValue ?? 5,
+      ...data
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
