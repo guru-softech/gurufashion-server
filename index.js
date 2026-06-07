@@ -17,6 +17,7 @@ const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const couponRoutes = require('./routes/couponRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // Routes
 app.use('/api/products', productRoutes);
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {
