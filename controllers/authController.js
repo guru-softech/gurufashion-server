@@ -120,6 +120,32 @@ const verifyOtp = async (req, res) => {
     // 5. Generate Firebase Custom Token
     const customToken = await admin.auth().createCustomToken(phoneNumber);
 
+    // 6. Sync verified phone login number to whatsapp_contacts CRM collection
+    try {
+      const cleaned = phoneNumber.replace(/[^0-9]/g, '');
+      const normalized = cleaned.startsWith('91') || cleaned.length !== 10 ? cleaned : '91' + cleaned;
+      
+      if (normalized.length === 12 && normalized.startsWith('91')) {
+        const contactRef = db.collection('whatsapp_contacts');
+        const contactSnap = await contactRef.where('phoneNumber', '==', normalized).limit(1).get();
+        if (contactSnap.empty) {
+          await contactRef.add({
+            phoneNumber: normalized,
+            rawData: {
+              Name: 'Registered Customer',
+              Source: 'App Login'
+            },
+            status: 'pending',
+            errorMessage: '',
+            importedAt: new Date()
+          });
+          console.log(`Saved new customer login ${normalized} to WhatsApp CRM.`);
+        }
+      }
+    } catch (crmErr) {
+      console.error('Failed to sync login number to WhatsApp CRM:', crmErr.message);
+    }
+
     res.status(200).json({ success: true, customToken });
   } catch (error) {
     console.error('Verify OTP Error:', error.message);
