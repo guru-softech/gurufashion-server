@@ -52,13 +52,32 @@ router.post('/', verifyToken, verifySuperAdmin, (req, res) => {
       const destPath = path.join(uploadDir, filename);
 
       // Compress and resize using sharp to WebP format
-      await sharp(req.file.buffer)
+      const sharpBuffer = sharp(req.file.buffer)
         .resize(1200, 1200, {
           fit: 'inside',
           withoutEnlargement: true
         })
-        .webp({ quality: 80 })
-        .toFile(destPath);
+        .webp({ quality: 80 });
+
+      // Save to client public/ (development source)
+      await sharpBuffer.toFile(destPath);
+
+      // Also save to client dist/ (production build) if it exists
+      const distDir = path.join(__dirname, '../../gurufashions-client/dist/images/Products');
+      if (fs.existsSync(path.join(__dirname, '../../gurufashions-client/dist'))) {
+        if (!fs.existsSync(distDir)) {
+          fs.mkdirSync(distDir, { recursive: true });
+        }
+        const distPath = path.join(distDir, filename);
+        // We reuse the buffer to write to distPath
+        await sharp(req.file.buffer)
+          .resize(1200, 1200, {
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .webp({ quality: 80 })
+          .toFile(distPath);
+      }
 
       // Return the relative path that the client can use
       const filePath = `/images/Products/${filename}`;
@@ -84,22 +103,37 @@ router.delete('/', verifyToken, verifySuperAdmin, (req, res) => {
 
     // Extract filename from URL (e.g., /images/Products/123.jpg -> 123.jpg)
     const filename = path.basename(url);
-    const filePath = path.join(uploadDir, filename);
-
-    // Also look for the .webp version of the file path
     const ext = path.extname(filename);
     const baseName = path.basename(filename, ext);
-    const webpPath = path.join(uploadDir, `${baseName}.webp`);
+
+    // Development paths (public/)
+    const devFilePath = path.join(uploadDir, filename);
+    const devWebpPath = path.join(uploadDir, `${baseName}.webp`);
+
+    // Production paths (dist/)
+    const distDir = path.join(__dirname, '../../gurufashions-client/dist/images/Products');
+    const distFilePath = path.join(distDir, filename);
+    const distWebpPath = path.join(distDir, `${baseName}.webp`);
 
     let deleted = false;
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Delete dev files
+    if (fs.existsSync(devFilePath)) {
+      fs.unlinkSync(devFilePath);
+      deleted = true;
+    }
+    if (fs.existsSync(devWebpPath)) {
+      fs.unlinkSync(devWebpPath);
       deleted = true;
     }
 
-    if (fs.existsSync(webpPath)) {
-      fs.unlinkSync(webpPath);
+    // Delete production files
+    if (fs.existsSync(distFilePath)) {
+      fs.unlinkSync(distFilePath);
+      deleted = true;
+    }
+    if (fs.existsSync(distWebpPath)) {
+      fs.unlinkSync(distWebpPath);
       deleted = true;
     }
 
