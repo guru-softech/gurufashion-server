@@ -11,6 +11,7 @@ echo "🚀 Starting Guru Fashions Deployment..."
 # 1. Update Backend
 echo "📥 Updating server codebase..."
 cd /home/ubuntu/gurufashions-server
+git stash
 git pull origin main
 
 echo "🔄 Restarting Express backend server via PM2..."
@@ -19,6 +20,7 @@ pm2 restart ecosystem.config.js || pm2 restart gurufashions-server
 # 2. Update Frontend
 echo "📥 Updating client codebase..."
 cd /home/ubuntu/gurufashions-client
+git stash
 git pull origin main
 
 echo "📦 Installing client dependencies..."
