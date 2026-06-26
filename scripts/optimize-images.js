@@ -41,14 +41,14 @@ async function optimizeImages() {
 
       const ext = path.extname(file).toLowerCase();
       if (['.png', '.jpg', '.jpeg'].includes(ext)) {
-        const originalSize = stat.size;
-        
-        // Skip files that are already small (e.g. less than 50KB)
-        if (originalSize < 50 * 1024) continue;
-
         const baseName = path.basename(file, ext);
         const webpFilename = `${baseName}.webp`;
         const webpPath = path.join(dirInfo.path, webpFilename);
+
+        // Skip if webp version already exists to avoid redundant processing
+        if (fs.existsSync(webpPath)) continue;
+
+        const originalSize = stat.size;
 
         try {
           console.log(`Optimizing: ${file} (${(originalSize / 1024 / 1024).toFixed(2)} MB)`);
