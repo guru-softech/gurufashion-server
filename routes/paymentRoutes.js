@@ -5,5 +5,6 @@ const { verifyToken } = require('../middleware/authMiddleware');
 
 router.post('/create-order', verifyToken, paymentController.createRazorpayOrder);
 router.post('/verify-payment', verifyToken, paymentController.verifyPayment);
+router.post('/webhook', paymentController.razorpayWebhook);
 
 module.exports = router;

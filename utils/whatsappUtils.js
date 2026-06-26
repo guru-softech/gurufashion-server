@@ -72,14 +72,49 @@ async function sendWhatsApp(phoneNumber, variablesValues) {
  * @param {string} customerPhone - Customer phone from deliveryDetails
  */
 async function sendOrderConfirmationMessages(orderData, customerPhone) {
-  const orderId        = orderData.customOrderId || 'N/A';
-  const subtotal       = orderData.subtotal       || orderData.totalAmount || 0;
-  const discount       = orderData.discountAmount  || 0;
-  const couponCode     = orderData.appliedCoupon?.code || 'NIL';
-  const balanceAtDoor  = orderData.balanceDue      || 0;
+  const rawCustomerName = orderData.deliveryDetails?.name || 'Customer';
+  const rawOrderId      = orderData.customOrderId || 'N/A';
 
-  // Pipe-separated variables matching {{1}}|{{2}}|{{3}}|{{4}}|{{5}}
-  const variables = `${orderId}|${subtotal}|${discount}|${couponCode}|${balanceAtDoor}`;
+  // Clean customer name: keep only letters, numbers, and spaces
+  const customerName = rawCustomerName.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+
+  // Clean order ID: keep only alphanumeric characters
+  const orderId = rawOrderId.replace(/[^a-zA-Z0-9]/g, '').trim();
+  
+  // Format and clean cart items: separate with ' and ', keep only letters, numbers, spaces
+  const itemsText = (orderData.cartItems || []).map(item => {
+    const namePart = (item.name || 'Product')
+      .split('(')[0] // Strip any trailing parentheses details
+      .replace(/–/g, '')
+      .replace(/Premium Quality/g, '')
+      .replace(/Ankle Length/g, '')
+      .replace(/Full Length/g, '')
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .trim();
+    const sizeText = item.selectedSize && item.selectedSize !== 'N/A' ? ` ${item.selectedSize}` : '';
+    return `${namePart}${sizeText} x ${item.quantity || 1}`;
+  }).join(' and ').replace(/\s+/g, ' ').trim();
+
+  // Format and clean delivery address: replace commas and special characters with spaces
+  const delivery = orderData.deliveryDetails;
+  const rawAddressText = delivery 
+    ? `${delivery.address || ''} ${delivery.city || ''} ${delivery.state || ''} - ${delivery.pincode || ''}`.trim()
+    : 'N/A';
+  const addressText = rawAddressText
+    .replace(/[^a-zA-Z0-9\/\- ]/g, ' ') // keep letters, numbers, spaces, slashes, hyphens
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const totalAmount    = orderData.totalAmount    || orderData.subtotal || 0;
+  const advancePaid    = orderData.advancePaid    || 0;
+  const balanceDue     = orderData.balanceDue     || 0;
+
+  const cleanTotal = Math.round(totalAmount).toString();
+  const cleanAdvance = Math.round(advancePaid).toString();
+  const cleanBalance = Math.round(balanceDue).toString();
+
+  // Pipe-separated variables matching {{1}}|{{2}}|{{3}}|{{4}}|{{5}}|{{6}}|{{7}}
+  const variables = `${customerName}|${orderId}|${itemsText}|${addressText}|${cleanTotal}|${cleanAdvance}|${cleanBalance}`;
 
   const tasks = [];
 

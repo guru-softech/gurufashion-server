@@ -24,7 +24,9 @@ if (!admin.apps.length) {
         }),
       });
       console.log("Firebase Admin Initialized successfully.");
-      db = admin.firestore();
+      const firestoreInstance = admin.firestore();
+      firestoreInstance.settings({ ignoreUndefinedProperties: true });
+      db = firestoreInstance;
       auth = admin.auth();
     } else {
       console.error("CRITICAL: Firebase credentials missing in .env! Logging into Firebase will fail.");

@@ -12,17 +12,8 @@ if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure Storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique name: timestamp + original extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure Storage to memory (so we can process it with sharp)
+const storage = multer.memoryStorage();
 
 // File filter (images only)
 const fileFilter = (req, file, cb) => {
@@ -41,7 +32,7 @@ const upload = multer({
 
 // Upload endpoint
 router.post('/', verifyToken, verifySuperAdmin, (req, res) => {
-  upload.single('image')(req, res, function (err) {
+  upload.single('image')(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
       console.error("Multer error:", err);
       return res.status(500).json({ error: 'Multer error: ' + err.message });
@@ -55,10 +46,24 @@ router.post('/', verifyToken, verifySuperAdmin, (req, res) => {
         return res.status(400).json({ error: 'Please upload a file' });
       }
       
+      // Generate unique name: timestamp + random number + .webp extension
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const filename = uniqueSuffix + '.webp';
+      const destPath = path.join(uploadDir, filename);
+
+      // Compress and resize using sharp to WebP format
+      await sharp(req.file.buffer)
+        .resize(1200, 1200, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .webp({ quality: 80 })
+        .toFile(destPath);
+
       // Return the relative path that the client can use
-      const filePath = `/images/Products/${req.file.filename}`;
+      const filePath = `/images/Products/${filename}`;
       res.status(200).json({ 
-        message: 'File uploaded successfully',
+        message: 'File uploaded and optimized successfully',
         url: filePath 
       });
     } catch (error) {
@@ -81,8 +86,24 @@ router.delete('/', verifyToken, verifySuperAdmin, (req, res) => {
     const filename = path.basename(url);
     const filePath = path.join(uploadDir, filename);
 
+    // Also look for the .webp version of the file path
+    const ext = path.extname(filename);
+    const baseName = path.basename(filename, ext);
+    const webpPath = path.join(uploadDir, `${baseName}.webp`);
+
+    let deleted = false;
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+      deleted = true;
+    }
+
+    if (fs.existsSync(webpPath)) {
+      fs.unlinkSync(webpPath);
+      deleted = true;
+    }
+
+    if (deleted) {
       res.status(200).json({ message: 'File deleted successfully' });
     } else {
       res.status(404).json({ error: 'File not found' });
