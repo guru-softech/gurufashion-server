@@ -12,7 +12,9 @@ exports.getSettings = async (req, res) => {
         freeDeliveryThreshold: 499,
         fullLengthExtra: 50,
         shippingCharges: 50,
-        taxValue: 5
+        taxValue: 5,
+        codCharges: 50,
+        colorsList: "WHITE,BLACK,PINK_PEACH,BRIGHT_GOLD,MAROON,GREY,RANI ROSE,COPPER,DARK BLUE,SILVER,SUPER GOLD,RED,LAVENDER,YELLOW,CREAM"
       });
     }
     // Also inject defaults into existing documents that might not have these fields yet
@@ -22,6 +24,8 @@ exports.getSettings = async (req, res) => {
       fullLengthExtra: data.fullLengthExtra ?? 50,
       shippingCharges: data.shippingCharges ?? 50,
       taxValue: data.taxValue ?? 5,
+      codCharges: data.codCharges ?? 50,
+      colorsList: data.colorsList ?? "WHITE,BLACK,PINK_PEACH,BRIGHT_GOLD,MAROON,GREY,RANI ROSE,COPPER,DARK BLUE,SILVER,SUPER GOLD,RED,LAVENDER,YELLOW,CREAM",
       ...data
     });
   } catch (error) {

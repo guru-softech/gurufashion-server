@@ -81,19 +81,28 @@ async function sendOrderConfirmationMessages(orderData, customerPhone) {
   // Clean order ID: keep only alphanumeric characters
   const orderId = rawOrderId.replace(/[^a-zA-Z0-9]/g, '').trim();
   
-  // Format and clean cart items: separate with ' and ', keep only letters, numbers, spaces
+  // Format and clean cart items: category, color, size, length if available, and qty
   const itemsText = (orderData.cartItems || []).map(item => {
-    const namePart = (item.name || 'Product')
-      .split('(')[0] // Strip any trailing parentheses details
-      .replace(/–/g, '')
-      .replace(/Premium Quality/g, '')
-      .replace(/Ankle Length/g, '')
-      .replace(/Full Length/g, '')
+    const category = (item.category || 'Product')
       .replace(/[^a-zA-Z0-9 ]/g, '')
       .trim();
-    const sizeText = item.selectedSize && item.selectedSize !== 'N/A' ? ` ${item.selectedSize}` : '';
-    return `${namePart}${sizeText} x ${item.quantity || 1}`;
-  }).join(' and ').replace(/\s+/g, ' ').trim();
+    const color = (item.selectedColor || 'Default')
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .trim();
+    const size = (item.selectedSize || 'N/A')
+      .replace(/[^a-zA-Z0-9\/\- ]/g, '')
+      .trim();
+    const lengthVal = item.length ? `${item.length} Length` : '';
+    const qty = item.quantity || 1;
+
+    let detail = `${category} - ${color} - ${size}`;
+    if (lengthVal) {
+      detail += ` - ${lengthVal}`;
+    }
+    detail += ` - Qty ${qty}`;
+
+    return detail.replace(/\s+/g, ' ').trim();
+  }).join(' and ').trim();
 
   // Format and clean delivery address: replace commas and special characters with spaces
   const delivery = orderData.deliveryDetails;
