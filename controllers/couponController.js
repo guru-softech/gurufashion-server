@@ -106,7 +106,8 @@ exports.validateCoupon = async (req, res) => {
     res.status(200).json({ 
       id: couponDoc.id, 
       code: coupon.code, 
-      discountAmount: coupon.discountAmount,
+      discountAmount: Number(coupon.discountAmount),
+      minAmount: Number(coupon.minAmount || 0),
       usageLimit: coupon.usageLimit
     });
   } catch (error) {
