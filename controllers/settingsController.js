@@ -25,7 +25,19 @@ exports.getSettings = async (req, res) => {
       shippingCharges: data.shippingCharges ?? 50,
       taxValue: data.taxValue ?? 5,
       codCharges: data.codCharges ?? 50,
-      colorsList: data.colorsList ?? "WHITE,BLACK,PINK_PEACH,BRIGHT_GOLD,MAROON,GREY,RANI ROSE,COPPER,DARK BLUE,SILVER,SUPER GOLD,RED,LAVENDER,YELLOW,CREAM",
+      bestSellerBanners: data.bestSellerBanners ?? (
+        data.bestSellerBannerUrl 
+          ? [{
+              id: 'slide-1',
+              imageUrl: data.bestSellerBannerUrl,
+              link: data.bestSellerBannerLink || '/catalog',
+              title: data.bestSellerBannerTitle || '',
+              subtitle: data.bestSellerBannerSubtitle || '',
+              enabled: data.bestSellerBannerEnabled ?? true
+            }]
+          : []
+      ),
+      bestSellerBannerEnabled: data.bestSellerBannerEnabled ?? false,
       ...data
     });
   } catch (error) {
